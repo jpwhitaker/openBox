@@ -8,7 +8,7 @@ import * as dat from 'lil-gui'
  * Debug
  */
 
-const gui = new dat.GUI()
+const gui = new dat.GUI({width: 1000})
 
 
 /**
@@ -37,21 +37,38 @@ gui.add(mesh.position, 'y', -3, 3, 0.01)
  * Object 2
  */
 
- var material1 = new THREE.MeshBasicMaterial( { color: 0xff0000, side: THREE.DoubleSide } );
- var material2 = new THREE.MeshBasicMaterial( { color: 0x00ff00, side: THREE.DoubleSide } );
- var material3 = new THREE.MeshBasicMaterial( { color: 0x0000ff, side: THREE.DoubleSide } );
- var material4 = new THREE.MeshBasicMaterial( { color: 0xffff00, side: THREE.DoubleSide } );
- var material5 = new THREE.MeshBasicMaterial( { color: 0x00ffff, side: THREE.DoubleSide } );
+ var material1 = new THREE.MeshStandardMaterial( { color: 0xff0000, side: THREE.DoubleSide } );
+ var material2 = new THREE.MeshStandardMaterial( { color: 0x00ff00, side: THREE.DoubleSide } );
+ var material3 = new THREE.MeshStandardMaterial( { color: 0x0000ff, side: THREE.DoubleSide } );
+ var material4 = new THREE.MeshStandardMaterial( { color: 0xffff00, side: THREE.DoubleSide } );
+ var material5 = new THREE.MeshStandardMaterial( { color: 0x00ffff, side: THREE.DoubleSide } );
 
- var materialTransparent =  new THREE.MeshBasicMaterial( { transparent: true, opacity: 0, wireframe: true, side: THREE.DoubleSide} );
- var geometry2 = new THREE.BoxBufferGeometry( 1, 1, 1 );
+ var materialTransparent =  new THREE.MeshStandardMaterial( { transparent: true, opacity: 0, wireframe: true, side: THREE.DoubleSide} );
+ var geometry2 = new THREE.BoxBufferGeometry( 5, 1, 1 );
 
  var materials2 = [ materialTransparent, material1, material2, material3, material4, material5 ]
 
  var mesh2 = new THREE.Mesh( geometry2, materials2 );
+ mesh2.receiveShadow = true;
+ mesh2.castShadow = true
  scene.add( mesh2 );
 
-gui.add(mesh2.position, 'y', -3, 3, 0.01)
+gui.add(mesh2.position, 'y', -3, 3, 0.001)
+    .name("open cube y")
+
+
+/**
+ * light
+ */
+
+ const ambientLight = new THREE.AmbientLight(0xffffff, 0.2)
+ scene.add(ambientLight)
+
+const directionalLight = new THREE.PointLight(0xffffff, 1);
+directionalLight.position.x = 3
+// directionalLight.position.x = 2
+directionalLight.castShadow = true
+scene.add(directionalLight)
 
 
 /**
@@ -81,6 +98,21 @@ const cameras = {
         }
     }
 }
+
+const lights = {
+    directionalLight: directionalLight,
+    toggleLight: function(){
+        this.directionalLight.visible = !this.directionalLight.visible
+    },
+    intensity: directionalLight.intensity
+}
+// const directionalLightHelper = new THREE.DirectionalLightHelper( directionalLight );
+// scene.add( directionalLightHelper );
+
+gui.add(lights, 'toggleLight')
+gui.add(directionalLight, 'intensity', 0, 3, 0.05)
+gui.add(directionalLight, 'decay', 0, 100, 0.5)
+gui.add(directionalLight.position, 'x', 0, 10, 0.05)
 
 gui.add(cameras, 'changeCamera')
 
@@ -152,7 +184,7 @@ const tick = () =>
         controls2.enabled = true;
         controls2.update()
     }
-
+    // console.log(directionalLight.decay)
     // Render
     renderer.render(scene, cameras.currentCamera)
 
