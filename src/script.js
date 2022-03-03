@@ -5,10 +5,9 @@ import gsap from 'gsap'
 import * as dat from 'lil-gui'
 
 /**
- * Debug
+ * Debug Panel
  */
-
-const gui = new dat.GUI({width: 1000})
+const gui = new dat.GUI({width: 500})
 
 
 /**
@@ -20,53 +19,40 @@ const canvas = document.querySelector('canvas.webgl')
 // Scene
 const scene = new THREE.Scene()
 
-/**
- * Object
- */
-const boxHeight = 1
-const geometry = new THREE.BoxGeometry(1, boxHeight, 1)
-const material = new THREE.MeshBasicMaterial({ color: 0xff0000 })
-const mesh = new THREE.Mesh(geometry, material)
-// scene.add(mesh)
-
-gui.add(mesh.position, 'y', -3, 3, 0.01)
 
 
 
 /**
- * Object 2
+ * Open Box
  */
+var material1 = new THREE.MeshStandardMaterial( { color: 0xff0000, side: THREE.DoubleSide, shadowSide:THREE.DoubleSide  } );
+var material2 = new THREE.MeshStandardMaterial( { color: 0x00ff00, side: THREE.DoubleSide, shadowSide:THREE.DoubleSide } );
+var material3 = new THREE.MeshStandardMaterial( { color: 0x0000ff, side: THREE.DoubleSide, shadowSide:THREE.DoubleSide } );
+var material4 = new THREE.MeshStandardMaterial( { color: 0xffff00, side: THREE.DoubleSide, shadowSide:THREE.DoubleSide } );
+var material5 = new THREE.MeshStandardMaterial( { color: 0x00ffff, side: THREE.DoubleSide, shadowSide:THREE.DoubleSide } );
+var materialTransparent =  new THREE.MeshStandardMaterial( { transparent: true, opacity: 0, wireframe: true, side: THREE.DoubleSide} );
 
- var material1 = new THREE.MeshStandardMaterial( { color: 0xff0000, side: THREE.DoubleSide } );
- var material2 = new THREE.MeshStandardMaterial( { color: 0x00ff00, side: THREE.DoubleSide } );
- var material3 = new THREE.MeshStandardMaterial( { color: 0x0000ff, side: THREE.DoubleSide } );
- var material4 = new THREE.MeshStandardMaterial( { color: 0xffff00, side: THREE.DoubleSide } );
- var material5 = new THREE.MeshStandardMaterial( { color: 0x00ffff, side: THREE.DoubleSide } );
+var geometry = new THREE.BoxGeometry( 5, 1, 1 );
+var materials = [ materialTransparent, material1, material2, material3, material4, material5 ]
 
- var materialTransparent =  new THREE.MeshStandardMaterial( { transparent: true, opacity: 0, wireframe: true, side: THREE.DoubleSide} );
- var geometry2 = new THREE.BoxBufferGeometry( 5, 1, 1 );
+var openBox = new THREE.Mesh( geometry, materials );
+openBox.receiveShadow = true;
+openBox.castShadow = true
+scene.add( openBox );
 
- var materials2 = [ materialTransparent, material1, material2, material3, material4, material5 ]
-
- var mesh2 = new THREE.Mesh( geometry2, materials2 );
- mesh2.receiveShadow = true;
- mesh2.castShadow = true
- scene.add( mesh2 );
-
-gui.add(mesh2.position, 'y', -3, 3, 0.001)
-    .name("open cube y")
+gui.add(openBox.position, 'y', -3, 3, 0.001)
+    .name("Open Box Y-pos")
 
 
 /**
  * light
  */
 
- const ambientLight = new THREE.AmbientLight(0xffffff, 0.2)
- scene.add(ambientLight)
+const ambientLight = new THREE.AmbientLight(0xffffff, 0.2)
+scene.add(ambientLight)
 
 const directionalLight = new THREE.PointLight(0xffffff, 1);
 directionalLight.position.x = 3
-// directionalLight.position.x = 2
 directionalLight.castShadow = true
 scene.add(directionalLight)
 
@@ -79,25 +65,7 @@ const sizes = {
     height: window.innerHeight
 }
 
-const cam1 = new THREE.PerspectiveCamera(50, sizes.width / sizes.height, 0.1, 100)
 
-const cameraFov = 50;
-const cam2 = new THREE.PerspectiveCamera(cameraFov, sizes.width / sizes.height, 0.1, 100)
-
-const cameras = {
-    cam1: cam1,
-    cam2: cam2,
-    currentCamera: cam1,
-    changeCamera: function(){
-        if (this.currentCamera === cam1){
-            console.log('cam1')
-            this.currentCamera = cam2;
-        } else {
-            console.log('cam2')
-            this.currentCamera = cam1
-        }
-    }
-}
 
 const lights = {
     directionalLight: directionalLight,
@@ -109,12 +77,12 @@ const lights = {
 // const directionalLightHelper = new THREE.DirectionalLightHelper( directionalLight );
 // scene.add( directionalLightHelper );
 
-gui.add(lights, 'toggleLight')
+gui.add(lights, 'toggleLight').name("Toggle light")
 gui.add(directionalLight, 'intensity', 0, 3, 0.05)
 gui.add(directionalLight, 'decay', 0, 100, 0.5)
 gui.add(directionalLight.position, 'x', 0, 10, 0.05)
 
-gui.add(cameras, 'changeCamera')
+
 
 window.addEventListener('resize', () =>
 {
@@ -132,29 +100,45 @@ window.addEventListener('resize', () =>
 })
 
 /**
- * Camera
+ * Cameras
  */
-// Base camera
+
+const cameraFov = 50;
+const boxHeight = 1;
+
+const cam1 = new THREE.PerspectiveCamera(cameraFov, sizes.width / sizes.height, 0.1, 100)
+const cam2 = new THREE.PerspectiveCamera(cameraFov, sizes.width / sizes.height, 0.1, 100)
 
 
-cameras.cam1.position.z = 3
-cameras.cam2.position.x = boxHeight / 2 / Math.tan(Math.PI * cameraFov / 360);
+//object used to change between the two cameras
+const cameras = {
+    cam1: cam1,
+    cam2: cam2,
+    currentCamera: cam1,
+    changeCamera: function(){
+        this.currentCamera = (this.currentCamera === cam1) ? cam2 : cam1;
+    }
+}
+gui.add(cameras, 'changeCamera')
 
-// cameras.cam2.position.z = 0
+cam1.position.z = 3
+cam2.position.x = boxHeight / 2 / Math.tan(Math.PI * cameraFov / 360);
 cameras.cam2.lookAt( 0, 0, 0 );
-
 
 scene.add(cameras.cam1)
 scene.add(cameras.cam2)
+
 const helper1 = new THREE.CameraHelper( cameras.cam1 );
-scene.add( helper1 );
 const helper2 = new THREE.CameraHelper( cameras.cam2 );
+scene.add( helper1 );
 scene.add( helper2 );
+
 
 // Controls
 const controls1 = new OrbitControls(cameras.cam1, canvas)
 const controls2 = new OrbitControls(cameras.cam2, canvas)
 controls1.enableDamping = true
+controls2.enableDamping = true
 
 /**
  * Renderer
@@ -184,7 +168,7 @@ const tick = () =>
         controls2.enabled = true;
         controls2.update()
     }
-    // console.log(directionalLight.decay)
+
     // Render
     renderer.render(scene, cameras.currentCamera)
 
